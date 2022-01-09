@@ -16,8 +16,8 @@ WHERE website_session_id = 1059;
 SELECT
 	sessions.utm_content,
 	COUNT(DISTINCT sessions.website_session_id) AS sessions,
-    COUNT(DISTINCT orders.order_id) AS orders,
-    CONCAT(COUNT(DISTINCT orders.order_id)/COUNT(DISTINCT sessions.website_session_id)*100,"%") AS session_to_order_conv_rt
+	COUNT(DISTINCT orders.order_id) AS orders,
+	CONCAT(COUNT(DISTINCT orders.order_id)/COUNT(DISTINCT sessions.website_session_id)*100,"%") AS session_to_order_conv_rt
 FROM website_sessions AS sessions
 	LEFT JOIN orders 
 		ON orders.website_session_id = sessions.website_session_id
@@ -31,9 +31,9 @@ ORDER BY session_to_order_conv_rt DESC;
 				i.e. Top Traffic Sources*/
 SELECT
 	sessions.utm_source,
-    sessions.utm_campaign,
-    sessions.http_referer,
-    COUNT(DISTINCT sessions.website_session_id) AS sessions
+	sessions.utm_campaign,
+	sessions.http_referer,
+	COUNT(DISTINCT sessions.website_session_id) AS sessions
 FROM
 	website_sessions AS sessions
 WHERE
@@ -41,16 +41,16 @@ WHERE
     
 GROUP BY
 	sessions.utm_source,
-    sessions.utm_campaign,
-    sessions.http_referer
+	sessions.utm_campaign,
+	sessions.http_referer
 ORDER BY 
 	4 DESC;
     
 /*3) Task 2) Analyzing the Conversion rate from sessions to orders of the Top Traffic Sources*/
 SELECT
 	COUNT(DISTINCT ws.website_session_id) AS sessions,
-    COUNT(DISTINCT ord.order_id) AS orders,
-    CONCAT(COUNT(DISTINCT ord.order_id)/COUNT(DISTINCT ws.website_session_id)*100,"%") AS CVR -- Sessions to Order conversion rate
+	COUNT(DISTINCT ord.order_id) AS orders,
+	CONCAT(COUNT(DISTINCT ord.order_id)/COUNT(DISTINCT ws.website_session_id)*100,"%") AS CVR -- Sessions to Order conversion rate
     
 FROM website_sessions AS ws
 	LEFT JOIN orders AS ord
