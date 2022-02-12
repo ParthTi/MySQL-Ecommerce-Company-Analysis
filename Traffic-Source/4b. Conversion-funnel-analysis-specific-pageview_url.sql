@@ -11,7 +11,7 @@ USE mavenfuzzyfactory;
 SELECT 
 	web_sess.website_session_id,
     web_pvs.pageview_url,
-    web_pvs.created_at AS pageview_created_at,
+    -- web_pvs.created_at AS pageview_created_at,
     -- Flagging each session to track session id through the order cycle
     CASE WHEN pageview_url = '/products' THEN 1 ELSE 0 END AS products_page,
     CASE WHEN pageview_url = '/the-original-mr-fuzzy' THEN 1 ELSE 0 END AS mrfuzzy_page,
@@ -20,16 +20,21 @@ SELECT
     CASE WHEN pageview_url = '/billing' THEN 1 ELSE 0 END AS billing_page,
     CASE WHEN pageview_url = '/thank-you-for-your-order' THEN 1 ELSE 0 END AS order_page
 
-FROM website_pageviews AS web_pvs
-	LEFT JOIN website_sessions AS web_sess
+FROM website_sessions AS web_sess
+	LEFT JOIN website_pageviews AS web_pvs
 		ON web_sess.website_session_id = web_pvs.website_session_id
-WHERE web_pvs.created_at BETWEEN '2012-08-05' AND '2012-09-05'
+WHERE web_sess.created_at > '2012-08-05'
+	AND web_sess.created_at <'2012-09-05'
 	AND web_sess.utm_source = 'gsearch'
-    AND web_pvs.pageview_url IN('/lander-1','/products','/the-original-mr-fuzzy','/cart','/shipping','/billing','/thank-you-for-your-order')
+    AND web_sess.utm_campaign = 'nonbrand'
+	AND web_pvs.pageview_url IN('/lander-1','/products','/the-original-mr-fuzzy','/cart','/shipping','/billing','/thank-you-for-your-order')
 
-ORDER BY web_sess.website_session_id;
+ORDER BY 
+	web_sess.website_session_id,
+	web_pvs.created_at;
 
 #Step 2: Using the previous query as Subquery
+-- DROP TABLE sessions_level_made_it_flags; # In case there are any adjustments made to the previous query
 CREATE TEMPORARY TABLE sessions_level_made_it_flags
 SELECT 
 	website_session_id,
@@ -43,27 +48,35 @@ FROM
 -- Subquery:
 (
 	SELECT 
-		web_sess.website_session_id,
-		web_pvs.pageview_url,
-		web_pvs.created_at AS pageview_created_at,
-		-- Flagging each session to track session id through the order cycle
-		CASE WHEN pageview_url = '/products' THEN 1 ELSE 0 END AS products_page,
-		CASE WHEN pageview_url = '/the-original-mr-fuzzy' THEN 1 ELSE 0 END AS mrfuzzy_page,
-		CASE WHEN pageview_url = '/cart' THEN 1 ELSE 0 END AS cart_page,
-		CASE WHEN pageview_url = '/shipping' THEN 1 ELSE 0 END AS shipping_page,
-		CASE WHEN pageview_url = '/billing' THEN 1 ELSE 0 END AS billing_page,
-		CASE WHEN pageview_url = '/thank-you-for-your-order' THEN 1 ELSE 0 END AS order_page
+	web_sess.website_session_id,
+    web_pvs.pageview_url,
+    -- web_pvs.created_at AS pageview_created_at,
+    -- Flagging each session to track session id through the order cycle
+    CASE WHEN pageview_url = '/products' THEN 1 ELSE 0 END AS products_page,
+    CASE WHEN pageview_url = '/the-original-mr-fuzzy' THEN 1 ELSE 0 END AS mrfuzzy_page,
+    CASE WHEN pageview_url = '/cart' THEN 1 ELSE 0 END AS cart_page,
+    CASE WHEN pageview_url = '/shipping' THEN 1 ELSE 0 END AS shipping_page,
+    CASE WHEN pageview_url = '/billing' THEN 1 ELSE 0 END AS billing_page,
+    CASE WHEN pageview_url = '/thank-you-for-your-order' THEN 1 ELSE 0 END AS order_page
 
-	FROM website_pageviews AS web_pvs
-		LEFT JOIN website_sessions AS web_sess
+	FROM website_sessions AS web_sess
+		LEFT JOIN website_pageviews AS web_pvs
 			ON web_sess.website_session_id = web_pvs.website_session_id
-	WHERE web_pvs.created_at BETWEEN '2012-08-05' AND '2012-09-05'
+	WHERE web_sess.created_at > '2012-08-05'
+		AND web_sess.created_at <'2012-09-05'
 		AND web_sess.utm_source = 'gsearch'
+		AND web_sess.utm_campaign = 'nonbrand'
 		AND web_pvs.pageview_url IN('/lander-1','/products','/the-original-mr-fuzzy','/cart','/shipping','/billing','/thank-you-for-your-order')
-	ORDER BY web_sess.website_session_id
+
+	ORDER BY 
+		web_sess.website_session_id,
+		web_pvs.created_at
 ) AS pageview_level
 
 GROUP BY website_session_id;
+
+-- # To check: Print the Results of "sessions_level_made_it_flags":
+-- SELECT * FROM sessions_level_made_it_flags;
 
 # STEP 3: 
 
